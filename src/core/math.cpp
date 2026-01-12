@@ -1,0 +1,127 @@
+#include "core/math.h"
+#include <cmath>
+#include <cassert>
+
+namespace tf {
+
+Tensor matmul(const Tensor& A, const Tensor& B) {
+  assert(A.cols == B.rows);
+  Tensor C(A.rows, B.cols, 0.0f);
+
+  for (int i = 0; i < A.rows; ++i) {
+    for (int k = 0; k < A.cols; ++k) {
+      const float a = A(i, k);
+      const size_t b_row = (size_t)k * (size_t)B.cols;
+      const size_t c_row = (size_t)i * (size_t)C.cols;
+      for (int j = 0; j < B.cols; ++j) {
+        C.data[c_row + (size_t)j] += a * B.data[b_row + (size_t)j];
+      }
+    }
+  }
+  return C;
+}
+
+Tensor transpose(const Tensor& A) {
+  Tensor T(A.cols, A.rows, 0.0f);
+  for (int i = 0; i < A.rows; ++i)
+    for (int j = 0; j < A.cols; ++j)
+      T(j, i) = A(i, j);
+  return T;
+}
+
+Tensor add(const Tensor& A, const Tensor& B) {
+  assert(A.rows == B.rows && A.cols == B.cols);
+  Tensor C(A.rows, A.cols);
+  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] + B.data[i];
+  return C;
+}
+
+Tensor sub(const Tensor& A, const Tensor& B) {
+  assert(A.rows == B.rows && A.cols == B.cols);
+  Tensor C(A.rows, A.cols);
+  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] - B.data[i];
+  return C;
+}
+
+Tensor mul(const Tensor& A, const Tensor& B) {
+  assert(A.rows == B.rows && A.cols == B.cols);
+  Tensor C(A.rows, A.cols);
+  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] * B.data[i];
+  return C;
+}
+
+Tensor mul_scalar(const Tensor& A, float s) {
+  Tensor C(A.rows, A.cols);
+  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] * s;
+  return C;
+}
+
+Tensor add_bias_rowwise(const Tensor& X, const Tensor& b) {
+  assert(b.rows == 1 && b.cols == X.cols);
+  Tensor Y(X.rows, X.cols);
+  for (int i = 0; i < X.rows; ++i) {
+    const size_t row = (size_t)i * (size_t)X.cols;
+    for (int j = 0; j < X.cols; ++j) {
+      Y.data[row + (size_t)j] = X.data[row + (size_t)j] + b(0, j);
+    }
+  }
+  return Y;
+}
+
+Tensor sum_rows(const Tensor& X) {
+  Tensor s(1, X.cols, 0.0f);
+  for (int i = 0; i < X.rows; ++i) {
+    const size_t row = (size_t)i * (size_t)X.cols;
+    for (int j = 0; j < X.cols; ++j) {
+      s(0, j) += X.data[row + (size_t)j];
+    }
+  }
+  return s;
+}
+
+Tensor relu(const Tensor& X) {
+  Tensor Y(X.rows, X.cols);
+  for (size_t i = 0; i < X.size(); ++i) Y.data[i] = (X.data[i] > 0.0f) ? X.data[i] : 0.0f;
+  return Y;
+}
+
+Tensor relu_backward(const Tensor& X, const Tensor& dY) {
+  assert(X.rows == dY.rows && X.cols == dY.cols);
+  Tensor dX(X.rows, X.cols);
+  for (size_t i = 0; i < X.size(); ++i) dX.data[i] = (X.data[i] > 0.0f) ? dY.data[i] : 0.0f;
+  return dX;
+}
+
+static inline float sigmoid_scalar(float x) {
+  if (x >= 0.0f) {
+    float z = std::exp(-x);
+    return 1.0f / (1.0f + z);
+  } else {
+    float z = std::exp(x);
+    return z / (1.0f + z);
+  }
+}
+
+Tensor sigmoid(const Tensor& X) {
+  Tensor Y(X.rows, X.cols);
+  for (size_t i = 0; i < X.size(); ++i) Y.data[i] = sigmoid_scalar(X.data[i]);
+  return Y;
+}
+
+Tensor sigmoid_backward_from_output(const Tensor& sigmoid_out, const Tensor& dY) {
+  assert(sigmoid_out.rows == dY.rows && sigmoid_out.cols == dY.cols);
+  Tensor dX(sigmoid_out.rows, sigmoid_out.cols);
+  for (size_t i = 0; i < sigmoid_out.size(); ++i) {
+    const float s = sigmoid_out.data[i];
+    dX.data[i] = dY.data[i] * s * (1.0f - s);
+  }
+  return dX;
+}
+
+float mean(const Tensor& X) {
+  float acc = 0.0f;
+  for (auto v : X.data) acc += v;
+  return acc / (float)X.size();
+}
+
+}
