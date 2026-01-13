@@ -9,14 +9,24 @@ Tensor matmul(const Tensor& A, const Tensor& B) {
   CHECK(A.cols == B.rows, "matmul mismatch: " << A.shape_str() << " * " << B.shape_str());
   Tensor C(A.rows, B.cols, 0.0f);
 
+  // to optimize the matmul we can transpose B and access it linearly in the inner loop (dot product)
+  Tensor Bt = transpose(B);
+  // for now we use OpenMP to parallelize the outer loop
+  #pragma omp parallel for schedule(static)
   for (int i = 0; i < A.rows; ++i) {
-    for (int k = 0; k < A.cols; ++k) {
-      const float a = A(i, k);
-      const size_t b_row = (size_t)k * (size_t)B.cols;
-      const size_t c_row = (size_t)i * (size_t)C.cols;
-      for (int j = 0; j < B.cols; ++j) {
-        C.data[c_row + (size_t)j] += a * B.data[b_row + (size_t)j];
+    const size_t a_row_offset = (size_t)i * (size_t)A.cols;
+    const float* A_ptr = A.data.data() + a_row_offset;
+    
+    for (int j = 0; j < B.cols; ++j) {
+      const size_t b_row_offset = (size_t)j * (size_t)Bt.cols; // Bt dims: (B.cols x B.rows) -> (cols x A.cols)
+      const float* B_ptr = Bt.data.data() + b_row_offset;
+      
+      float sum = 0.0f;
+      for (int k = 0; k < A.cols; ++k) {
+        sum += A_ptr[k] * B_ptr[k];
       }
+      
+      C(i, j) = sum;
     }
   }
   return C;
