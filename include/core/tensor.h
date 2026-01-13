@@ -15,6 +15,14 @@ struct Tensor {
   Tensor() = default;
   Tensor(int r, int c, float fill = 0.0f) : rows(r), cols(c), data((size_t)r * (size_t)c, fill) {}
 
+  // pls stop copying this shit everywhere
+  Tensor(const Tensor&) = default;
+  Tensor& operator=(const Tensor&) = default;
+
+  // move stuff
+  Tensor(Tensor&& other) noexcept;
+  Tensor& operator=(Tensor&& other) noexcept;
+
   inline float& operator()(int r, int c) {
     CHECK(r >= 0 && r < rows && c >= 0 && c < cols, 
           "Index out of bounds: (" << r << ", " << c << ") for shape " << shape_str());
