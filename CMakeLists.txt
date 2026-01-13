@@ -30,9 +30,22 @@ if (TINY_NN_ENABLE_WARNINGS)
   endif()
 endif()
 
+# Optimizations
+if(NOT MSVC)
+  target_compile_options(tiny-nn PRIVATE -O3 -march=native -ffast-math)
+endif()
+
+# OpenMP
+find_package(OpenMP)
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(tiny-nn PUBLIC OpenMP::OpenMP_CXX)
+endif()
+
 # Examples
 add_executable(xor_train examples/xor_train.cpp)
 target_link_libraries(xor_train PRIVATE tiny-nn::tiny-nn)
+add_executable(linear_regression examples/linear_regression.cpp)
+target_link_libraries(linear_regression PRIVATE tiny-nn::tiny-nn)
 
 # Tests
 enable_testing()
