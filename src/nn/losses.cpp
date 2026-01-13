@@ -1,6 +1,7 @@
 #include "nn/losses.h"
 #include <cmath>
 #include <cassert>
+#include "core/error.h"
 
 namespace tf {
 
@@ -15,8 +16,9 @@ static inline float sigmoid_scalar(float x) {
 }
 
 float bce_with_logits(const Tensor& logits, const Tensor& targets, Tensor& d_logits) {
-  assert(logits.rows == targets.rows && logits.cols == targets.cols);
-  assert(logits.cols == 1);
+  CHECK(logits.rows == targets.rows && logits.cols == targets.cols, 
+        "BCE mismatch: logits " << logits.shape_str() << ", targets " << targets.shape_str());
+  CHECK(logits.cols == 1, "BCE requires 1 col, got " << logits.cols);
 
   d_logits = Tensor(logits.rows, logits.cols, 0.0f);
 

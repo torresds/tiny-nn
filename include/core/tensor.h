@@ -3,6 +3,7 @@
 #include <string>
 #include <cassert>
 #include <cstddef>
+#include "core/error.h"
 
 namespace tf {
 
@@ -15,12 +16,14 @@ struct Tensor {
   Tensor(int r, int c, float fill = 0.0f) : rows(r), cols(c), data((size_t)r * (size_t)c, fill) {}
 
   inline float& operator()(int r, int c) {
-    assert(r >= 0 && r < rows && c >= 0 && c < cols);
+    CHECK(r >= 0 && r < rows && c >= 0 && c < cols, 
+          "Index out of bounds: (" << r << ", " << c << ") for shape " << shape_str());
     return data[(size_t)r * (size_t)cols + (size_t)c];
   }
 
   inline const float& operator()(int r, int c) const {
-    assert(r >= 0 && r < rows && c >= 0 && c < cols);
+    CHECK(r >= 0 && r < rows && c >= 0 && c < cols, 
+          "Index out of bounds: (" << r << ", " << c << ") for shape " << shape_str());
     return data[(size_t)r * (size_t)cols + (size_t)c];
   }
 

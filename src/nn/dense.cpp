@@ -1,6 +1,7 @@
 #include "nn/dense.h"
 #include "core/math.h"
 #include <cassert>
+#include "core/error.h"
 
 namespace tf {
 
@@ -14,7 +15,7 @@ Dense::Dense(int in_features, int out_features, RNG& rng, bool he_init)
 }
 
 Tensor Dense::forward(const Tensor& x) {
-  assert(x.cols == W.rows);
+  CHECK(x.cols == W.rows, "Dense forward mismatch: input " << x.shape_str() << " expected cols=" << W.rows);
   x_cache = x;
   Tensor y = matmul(x, W);
   y = add_bias_rowwise(y, b);
@@ -22,8 +23,8 @@ Tensor Dense::forward(const Tensor& x) {
 }
 
 Tensor Dense::backward(const Tensor& grad_out) {
-  assert(grad_out.cols == W.cols);
-  assert(grad_out.rows == x_cache.rows);
+  CHECK(grad_out.cols == W.cols, "Dense backward mismatch: grad_out " << grad_out.shape_str() << " expected cols=" << W.cols);
+  CHECK(grad_out.rows == x_cache.rows, "Dense backward mismatch: grad_out " << grad_out.shape_str() << " expected rows=" << x_cache.rows);
 
   Tensor Xt = transpose(x_cache);
   dW = matmul(Xt, grad_out);

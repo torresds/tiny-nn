@@ -1,11 +1,12 @@
 #include "core/math.h"
 #include <cmath>
 #include <cassert>
+#include "core/error.h"
 
 namespace tf {
 
 Tensor matmul(const Tensor& A, const Tensor& B) {
-  assert(A.cols == B.rows);
+  CHECK(A.cols == B.rows, "matmul mismatch: " << A.shape_str() << " * " << B.shape_str());
   Tensor C(A.rows, B.cols, 0.0f);
 
   for (int i = 0; i < A.rows; ++i) {
@@ -30,21 +31,21 @@ Tensor transpose(const Tensor& A) {
 }
 
 Tensor add(const Tensor& A, const Tensor& B) {
-  assert(A.rows == B.rows && A.cols == B.cols);
+  CHECK(A.rows == B.rows && A.cols == B.cols, "add mismatch: " << A.shape_str() << " + " << B.shape_str());
   Tensor C(A.rows, A.cols);
   for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] + B.data[i];
   return C;
 }
 
 Tensor sub(const Tensor& A, const Tensor& B) {
-  assert(A.rows == B.rows && A.cols == B.cols);
+  CHECK(A.rows == B.rows && A.cols == B.cols, "sub mismatch: " << A.shape_str() << " - " << B.shape_str());
   Tensor C(A.rows, A.cols);
   for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] - B.data[i];
   return C;
 }
 
 Tensor mul(const Tensor& A, const Tensor& B) {
-  assert(A.rows == B.rows && A.cols == B.cols);
+  CHECK(A.rows == B.rows && A.cols == B.cols, "element-wise mul mismatch: " << A.shape_str() << " * " << B.shape_str());
   Tensor C(A.rows, A.cols);
   for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] * B.data[i];
   return C;
@@ -57,7 +58,7 @@ Tensor mul_scalar(const Tensor& A, float s) {
 }
 
 Tensor add_bias_rowwise(const Tensor& X, const Tensor& b) {
-  assert(b.rows == 1 && b.cols == X.cols);
+  CHECK(b.rows == 1 && b.cols == X.cols, "add_bias_rowwise mismatch: X=" << X.shape_str() << ", b=" << b.shape_str());
   Tensor Y(X.rows, X.cols);
   for (int i = 0; i < X.rows; ++i) {
     const size_t row = (size_t)i * (size_t)X.cols;
@@ -86,7 +87,7 @@ Tensor relu(const Tensor& X) {
 }
 
 Tensor relu_backward(const Tensor& X, const Tensor& dY) {
-  assert(X.rows == dY.rows && X.cols == dY.cols);
+  CHECK(X.rows == dY.rows && X.cols == dY.cols, "relu_backward mismatch: X=" << X.shape_str() << ", dY=" << dY.shape_str());
   Tensor dX(X.rows, X.cols);
   for (size_t i = 0; i < X.size(); ++i) dX.data[i] = (X.data[i] > 0.0f) ? dY.data[i] : 0.0f;
   return dX;
@@ -109,7 +110,8 @@ Tensor sigmoid(const Tensor& X) {
 }
 
 Tensor sigmoid_backward_from_output(const Tensor& sigmoid_out, const Tensor& dY) {
-  assert(sigmoid_out.rows == dY.rows && sigmoid_out.cols == dY.cols);
+  CHECK(sigmoid_out.rows == dY.rows && sigmoid_out.cols == dY.cols, 
+        "sigmoid_backward mismatch: out=" << sigmoid_out.shape_str() << ", dY=" << dY.shape_str());
   Tensor dX(sigmoid_out.rows, sigmoid_out.cols);
   for (size_t i = 0; i < sigmoid_out.size(); ++i) {
     const float s = sigmoid_out.data[i];
