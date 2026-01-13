@@ -22,7 +22,7 @@ size_t DataLoader::size() const { return dataset_.size(); }
 void DataLoader::reset() {
   current_idx_ = 0;
   if (shuffle_) {
-    // Fisher-Yates
+    
     for (size_t i = indices_.size() - 1; i > 0; --i) {
       size_t j = rng_.next_u32() % (i + 1);
       std::swap(indices_[i], indices_[j]);

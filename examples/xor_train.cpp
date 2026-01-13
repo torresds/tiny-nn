@@ -11,7 +11,7 @@ using namespace tf;
 static float accuracy_binary(const Tensor& logits, const Tensor& y) {
   int correct = 0;
   for (int i = 0; i < logits.rows; ++i) {
-    float pred = (logits(i,0) > 0.0f) ? 1.0f : 0.0f; // threshold at 0 logits ~ 0.5 sigmoid
+    float pred = (logits(i,0) > 0.0f) ? 1.0f : 0.0f; 
     if ((pred > 0.5f && y(i,0) > 0.5f) || (pred < 0.5f && y(i,0) < 0.5f))
       correct++;
   }

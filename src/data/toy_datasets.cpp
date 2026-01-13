@@ -17,7 +17,7 @@ TensorDataset make_blobs(int samples, int features, int centers,
                          float cluster_std, int seed) {
   RNG rng((unsigned int)seed);
 
-  // [-10, 10]
+  
   Tensor center_locs(centers, features);
   for (size_t i = 0; i < center_locs.size(); ++i) {
     center_locs.data[i] = rng.uniform(-10.0f, 10.0f);
@@ -28,14 +28,14 @@ TensorDataset make_blobs(int samples, int features, int centers,
   Y.fill_(0.0f); 
 
   for (int i = 0; i < samples; ++i) {
-    // uniform01 -> [0, 1). * centers -> [0, centers). floor.
+    
     int c = (int)(rng.uniform01() * centers);
     if (c >= centers)
       c = centers - 1;
 
     Y(i, c) = 1.0f;
 
-    // X = center + noise
+    
     for (int j = 0; j < features; ++j) {
       float center_val = center_locs(c, j);
       float noise = randn(rng) * cluster_std;

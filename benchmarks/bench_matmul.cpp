@@ -20,13 +20,13 @@ void bench_matmul(int size) {
 
 int main() {
     std::cout << "--- running matmul benchmarks ---" << std::endl;
-    // warmup
+    
     bench_matmul(64);
     
     bench_matmul(128);
     bench_matmul(256);
     bench_matmul(512);
-    // 1024 might take too long for now if O(N^3) is really slow
+    
     bench_matmul(1024); 
     
     return 0;

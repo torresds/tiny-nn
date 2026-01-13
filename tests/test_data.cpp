@@ -19,8 +19,8 @@ void test_make_blobs() {
 }
 
 void test_dataloader_batching() {
-  // 10 samples, batch 3
-  // batches: 3, 3, 3, 1
+  
+  
   int n = 10;
   auto ds = make_blobs(n, 2, 2);
 
@@ -30,26 +30,26 @@ void test_dataloader_batching() {
 
   Tensor X, Y;
 
-  // Batch 1
+  
   ASSERT_TRUE(loader.next(X, Y));
   ASSERT_EQ(X.rows, 3);
 
-  // Batch 2
+  
   ASSERT_TRUE(loader.next(X, Y));
   ASSERT_EQ(X.rows, 3);
 
-  // Batch 3
+  
   ASSERT_TRUE(loader.next(X, Y));
   ASSERT_EQ(X.rows, 3);
 
-  // Batch 4
+  
   ASSERT_TRUE(loader.next(X, Y));
   ASSERT_EQ(X.rows, 1);
 
-  // End
+  
   ASSERT_TRUE(!loader.next(X, Y));
 
-  // Reset
+  
   loader.reset();
   ASSERT_TRUE(loader.next(X, Y));
   ASSERT_EQ(X.rows, 3);

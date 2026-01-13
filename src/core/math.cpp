@@ -10,10 +10,10 @@ Tensor matmul(const Tensor &A, const Tensor &B) {
         "matmul mismatch: " << A.shape_str() << " * " << B.shape_str());
   Tensor C(A.rows, B.cols, 0.0f);
 
-  // to optimize the matmul we can transpose B and access it linearly in the
-  // inner loop (dot product)
+  
+  
   Tensor Bt = transpose(B);
-// for now we use OpenMP to parallelize the outer loop
+
 #pragma omp parallel for schedule(static)
   for (int i = 0; i < A.rows; ++i) {
     const size_t a_row_offset = (size_t)i * (size_t)A.cols;
@@ -22,7 +22,7 @@ Tensor matmul(const Tensor &A, const Tensor &B) {
     for (int j = 0; j < B.cols; ++j) {
       const size_t b_row_offset =
           (size_t)j *
-          (size_t)Bt.cols; // Bt dims: (B.cols x B.rows) -> (cols x A.cols)
+          (size_t)Bt.cols; 
       const float *B_ptr = Bt.data.data() + b_row_offset;
 
       float sum = 0.0f;
@@ -225,4 +225,4 @@ float mean(const Tensor &X) {
   return acc / (float)X.size();
 }
 
-} // namespace tf
+}  

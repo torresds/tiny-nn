@@ -23,14 +23,13 @@ Tensor sigmoid_backward_from_output(const Tensor &sigmoid_out,
 Tensor exp(const Tensor &X);
 Tensor log(const Tensor &X);
 
-// reductions (N, C) -> (N, 1)
-Tensor rowwise_max(const Tensor &X);
-Tensor rowwise_sum(const Tensor &X); // sum across cols for each row
 
-// broadcast (N, C) op (N, 1)
+Tensor rowwise_max(const Tensor &X);
+Tensor rowwise_sum(const Tensor &X); 
+
 Tensor sub_rowwise(const Tensor &X, const Tensor &v);
 Tensor div_rowwise(const Tensor &X, const Tensor &v);
 
 float mean(const Tensor &X);
 
-} // namespace tf
+}  

@@ -34,7 +34,7 @@ void Adam::step(const std::vector<Param> &ps) {
     Tensor &m = m_[param];
     Tensor &v = v_[param];
 
-    // sanity check
+    
     if (grad->rows != param->rows || grad->cols != param->cols)
       continue;
 
@@ -47,10 +47,10 @@ void Adam::step(const std::vector<Param> &ps) {
     for (size_t i = 0; i < len; ++i) {
       float g = g_data[i];
 
-      // m = beta1 * m + (1 - beta1) * g
+      
       m_data[i] = beta1_ * m_data[i] + (1.0f - beta1_) * g;
 
-      // v = beta2 * v + (1 - beta2) * g * g
+      
       v_data[i] = beta2_ * v_data[i] + (1.0f - beta2_) * g * g;
 
       float m_hat = m_data[i] / correction1;

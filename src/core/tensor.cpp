@@ -9,7 +9,7 @@ std::string Tensor::shape_str() const {
   return oss.str();
 }
 
-// steal data ptr, leave other empty
+
 Tensor::Tensor(Tensor&& other) noexcept 
   : rows(other.rows), cols(other.cols), data(std::move(other.data)) {
   other.rows = 0;
@@ -21,7 +21,7 @@ Tensor& Tensor::operator=(Tensor&& other) noexcept {
     rows = other.rows;
     cols = other.cols;
     data = std::move(other.data);
-    // dont leave trash behind
+    
     other.rows = 0;
     other.cols = 0;
   }

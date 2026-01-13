@@ -28,10 +28,10 @@ Tensor Dense::backward(const Tensor& grad_out) {
 
   Tensor Xt = transpose(x_cache);
   Tensor dW_cur = matmul(Xt, grad_out);
-  dW = add(dW, dW_cur); // accum
+  dW = add(dW, dW_cur); 
 
   Tensor db_cur = sum_rows(grad_out);
-  db = add(db, db_cur); // accum
+  db = add(db, db_cur); 
 
   Tensor Wt = transpose(W);
   Tensor dX = matmul(grad_out, Wt);

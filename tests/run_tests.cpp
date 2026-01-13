@@ -31,12 +31,19 @@ void test_softmax_ce_sanity();
 void test_softmax_ce_stability();
 void test_softmax_ce_grad_check();
 
-// Mem tests
+
 void test_move_semantics();
 void test_move_assignment();
 
-// Accum tests
+
 void test_grad_accumulation();
+
+
+void test_adam_simple();
+
+
+void test_make_blobs();
+void test_dataloader_batching();
 
 int main() {
   std::cout << "Running tiny-nn tests..." << std::endl;
@@ -62,6 +69,11 @@ int main() {
   tf::test::run_test("Move assignment", test_move_assignment);
 
   tf::test::run_test("Grad accumulation", test_grad_accumulation);
+
+  tf::test::run_test("Adam simple", test_adam_simple);
+
+  tf::test::run_test("Make blobs", test_make_blobs);
+  tf::test::run_test("DataLoader batching", test_dataloader_batching);
 
   tf::test::print_summary();
   return (tf::test::tests_passed == tf::test::tests_run) ? 0 : 1;

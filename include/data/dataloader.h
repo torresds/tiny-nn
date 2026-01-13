@@ -14,12 +14,12 @@ public:
 
   void reset();
 
-  // batch_x: (batch_size, features)
-  // batch_y: (batch_size, targets)
+  
+  
   bool next(Tensor &batch_x, Tensor &batch_y);
 
-  size_t len() const;  // n of batches
-  size_t size() const; // n of samples
+  size_t len() const;  
+  size_t size() const; 
 
 private:
   Dataset &dataset_;
