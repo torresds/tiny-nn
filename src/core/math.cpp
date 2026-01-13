@@ -1,38 +1,42 @@
 #include "core/math.h"
-#include <cmath>
-#include <cassert>
 #include "core/error.h"
+#include <cassert>
+#include <cmath>
 
 namespace tf {
 
-Tensor matmul(const Tensor& A, const Tensor& B) {
-  CHECK(A.cols == B.rows, "matmul mismatch: " << A.shape_str() << " * " << B.shape_str());
+Tensor matmul(const Tensor &A, const Tensor &B) {
+  CHECK(A.cols == B.rows,
+        "matmul mismatch: " << A.shape_str() << " * " << B.shape_str());
   Tensor C(A.rows, B.cols, 0.0f);
 
-  // to optimize the matmul we can transpose B and access it linearly in the inner loop (dot product)
+  // to optimize the matmul we can transpose B and access it linearly in the
+  // inner loop (dot product)
   Tensor Bt = transpose(B);
-  // for now we use OpenMP to parallelize the outer loop
-  #pragma omp parallel for schedule(static)
+// for now we use OpenMP to parallelize the outer loop
+#pragma omp parallel for schedule(static)
   for (int i = 0; i < A.rows; ++i) {
     const size_t a_row_offset = (size_t)i * (size_t)A.cols;
-    const float* A_ptr = A.data.data() + a_row_offset;
-    
+    const float *A_ptr = A.data.data() + a_row_offset;
+
     for (int j = 0; j < B.cols; ++j) {
-      const size_t b_row_offset = (size_t)j * (size_t)Bt.cols; // Bt dims: (B.cols x B.rows) -> (cols x A.cols)
-      const float* B_ptr = Bt.data.data() + b_row_offset;
-      
+      const size_t b_row_offset =
+          (size_t)j *
+          (size_t)Bt.cols; // Bt dims: (B.cols x B.rows) -> (cols x A.cols)
+      const float *B_ptr = Bt.data.data() + b_row_offset;
+
       float sum = 0.0f;
       for (int k = 0; k < A.cols; ++k) {
         sum += A_ptr[k] * B_ptr[k];
       }
-      
+
       C(i, j) = sum;
     }
   }
   return C;
 }
 
-Tensor transpose(const Tensor& A) {
+Tensor transpose(const Tensor &A) {
   Tensor T(A.cols, A.rows, 0.0f);
   for (int i = 0; i < A.rows; ++i)
     for (int j = 0; j < A.cols; ++j)
@@ -40,35 +44,45 @@ Tensor transpose(const Tensor& A) {
   return T;
 }
 
-Tensor add(const Tensor& A, const Tensor& B) {
-  CHECK(A.rows == B.rows && A.cols == B.cols, "add mismatch: " << A.shape_str() << " + " << B.shape_str());
+Tensor add(const Tensor &A, const Tensor &B) {
+  CHECK(A.rows == B.rows && A.cols == B.cols,
+        "add mismatch: " << A.shape_str() << " + " << B.shape_str());
   Tensor C(A.rows, A.cols);
-  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] + B.data[i];
+  for (size_t i = 0; i < A.size(); ++i)
+    C.data[i] = A.data[i] + B.data[i];
   return C;
 }
 
-Tensor sub(const Tensor& A, const Tensor& B) {
-  CHECK(A.rows == B.rows && A.cols == B.cols, "sub mismatch: " << A.shape_str() << " - " << B.shape_str());
+Tensor sub(const Tensor &A, const Tensor &B) {
+  CHECK(A.rows == B.rows && A.cols == B.cols,
+        "sub mismatch: " << A.shape_str() << " - " << B.shape_str());
   Tensor C(A.rows, A.cols);
-  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] - B.data[i];
+  for (size_t i = 0; i < A.size(); ++i)
+    C.data[i] = A.data[i] - B.data[i];
   return C;
 }
 
-Tensor mul(const Tensor& A, const Tensor& B) {
-  CHECK(A.rows == B.rows && A.cols == B.cols, "element-wise mul mismatch: " << A.shape_str() << " * " << B.shape_str());
+Tensor mul(const Tensor &A, const Tensor &B) {
+  CHECK(A.rows == B.rows && A.cols == B.cols,
+        "element-wise mul mismatch: " << A.shape_str() << " * "
+                                      << B.shape_str());
   Tensor C(A.rows, A.cols);
-  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] * B.data[i];
+  for (size_t i = 0; i < A.size(); ++i)
+    C.data[i] = A.data[i] * B.data[i];
   return C;
 }
 
-Tensor mul_scalar(const Tensor& A, float s) {
+Tensor mul_scalar(const Tensor &A, float s) {
   Tensor C(A.rows, A.cols);
-  for (size_t i = 0; i < A.size(); ++i) C.data[i] = A.data[i] * s;
+  for (size_t i = 0; i < A.size(); ++i)
+    C.data[i] = A.data[i] * s;
   return C;
 }
 
-Tensor add_bias_rowwise(const Tensor& X, const Tensor& b) {
-  CHECK(b.rows == 1 && b.cols == X.cols, "add_bias_rowwise mismatch: X=" << X.shape_str() << ", b=" << b.shape_str());
+Tensor add_bias_rowwise(const Tensor &X, const Tensor &b) {
+  CHECK(b.rows == 1 && b.cols == X.cols,
+        "add_bias_rowwise mismatch: X=" << X.shape_str()
+                                        << ", b=" << b.shape_str());
   Tensor Y(X.rows, X.cols);
   for (int i = 0; i < X.rows; ++i) {
     const size_t row = (size_t)i * (size_t)X.cols;
@@ -79,7 +93,7 @@ Tensor add_bias_rowwise(const Tensor& X, const Tensor& b) {
   return Y;
 }
 
-Tensor sum_rows(const Tensor& X) {
+Tensor sum_rows(const Tensor &X) {
   Tensor s(1, X.cols, 0.0f);
   for (int i = 0; i < X.rows; ++i) {
     const size_t row = (size_t)i * (size_t)X.cols;
@@ -90,16 +104,20 @@ Tensor sum_rows(const Tensor& X) {
   return s;
 }
 
-Tensor relu(const Tensor& X) {
+Tensor relu(const Tensor &X) {
   Tensor Y(X.rows, X.cols);
-  for (size_t i = 0; i < X.size(); ++i) Y.data[i] = (X.data[i] > 0.0f) ? X.data[i] : 0.0f;
+  for (size_t i = 0; i < X.size(); ++i)
+    Y.data[i] = (X.data[i] > 0.0f) ? X.data[i] : 0.0f;
   return Y;
 }
 
-Tensor relu_backward(const Tensor& X, const Tensor& dY) {
-  CHECK(X.rows == dY.rows && X.cols == dY.cols, "relu_backward mismatch: X=" << X.shape_str() << ", dY=" << dY.shape_str());
+Tensor relu_backward(const Tensor &X, const Tensor &dY) {
+  CHECK(X.rows == dY.rows && X.cols == dY.cols,
+        "relu_backward mismatch: X=" << X.shape_str()
+                                     << ", dY=" << dY.shape_str());
   Tensor dX(X.rows, X.cols);
-  for (size_t i = 0; i < X.size(); ++i) dX.data[i] = (X.data[i] > 0.0f) ? dY.data[i] : 0.0f;
+  for (size_t i = 0; i < X.size(); ++i)
+    dX.data[i] = (X.data[i] > 0.0f) ? dY.data[i] : 0.0f;
   return dX;
 }
 
@@ -113,15 +131,18 @@ static inline float sigmoid_scalar(float x) {
   }
 }
 
-Tensor sigmoid(const Tensor& X) {
+Tensor sigmoid(const Tensor &X) {
   Tensor Y(X.rows, X.cols);
-  for (size_t i = 0; i < X.size(); ++i) Y.data[i] = sigmoid_scalar(X.data[i]);
+  for (size_t i = 0; i < X.size(); ++i)
+    Y.data[i] = sigmoid_scalar(X.data[i]);
   return Y;
 }
 
-Tensor sigmoid_backward_from_output(const Tensor& sigmoid_out, const Tensor& dY) {
-  CHECK(sigmoid_out.rows == dY.rows && sigmoid_out.cols == dY.cols, 
-        "sigmoid_backward mismatch: out=" << sigmoid_out.shape_str() << ", dY=" << dY.shape_str());
+Tensor sigmoid_backward_from_output(const Tensor &sigmoid_out,
+                                    const Tensor &dY) {
+  CHECK(sigmoid_out.rows == dY.rows && sigmoid_out.cols == dY.cols,
+        "sigmoid_backward mismatch: out=" << sigmoid_out.shape_str()
+                                          << ", dY=" << dY.shape_str());
   Tensor dX(sigmoid_out.rows, sigmoid_out.cols);
   for (size_t i = 0; i < sigmoid_out.size(); ++i) {
     const float s = sigmoid_out.data[i];
@@ -130,10 +151,78 @@ Tensor sigmoid_backward_from_output(const Tensor& sigmoid_out, const Tensor& dY)
   return dX;
 }
 
-float mean(const Tensor& X) {
+Tensor exp(const Tensor &X) {
+  Tensor Y(X.rows, X.cols);
+  for (size_t i = 0; i < X.size(); ++i)
+    Y.data[i] = std::exp(X.data[i]);
+  return Y;
+}
+
+Tensor log(const Tensor &X) {
+  Tensor Y(X.rows, X.cols);
+  for (size_t i = 0; i < X.size(); ++i)
+    Y.data[i] = std::log(X.data[i]);
+  return Y;
+}
+
+Tensor rowwise_max(const Tensor &X) {
+  Tensor m(X.rows, 1, -1e30f);
+  for (int i = 0; i < X.rows; ++i) {
+    float max_val = X(i, 0);
+    for (int j = 1; j < X.cols; ++j) {
+      float v = X(i, j);
+      if (v > max_val)
+        max_val = v;
+    }
+    m(i, 0) = max_val;
+  }
+  return m;
+}
+
+Tensor rowwise_sum(const Tensor &X) {
+  Tensor s(X.rows, 1, 0.0f);
+  for (int i = 0; i < X.rows; ++i) {
+    float acc = 0.0f;
+    for (int j = 0; j < X.cols; ++j)
+      acc += X(i, j);
+    s(i, 0) = acc;
+  }
+  return s;
+}
+
+Tensor sub_rowwise(const Tensor &X, const Tensor &v) {
+  CHECK(v.rows == X.rows && v.cols == 1, "sub_rowwise mismatch X("
+                                             << X.shape_str() << ") v("
+                                             << v.shape_str() << ")");
+  Tensor Y(X.rows, X.cols);
+  for (int i = 0; i < X.rows; ++i) {
+    float val = v(i, 0);
+    for (int j = 0; j < X.cols; ++j) {
+      Y(i, j) = X(i, j) - val;
+    }
+  }
+  return Y;
+}
+
+Tensor div_rowwise(const Tensor &X, const Tensor &v) {
+  CHECK(v.rows == X.rows && v.cols == 1, "div_rowwise mismatch X("
+                                             << X.shape_str() << ") v("
+                                             << v.shape_str() << ")");
+  Tensor Y(X.rows, X.cols);
+  for (int i = 0; i < X.rows; ++i) {
+    float val = v(i, 0);
+    for (int j = 0; j < X.cols; ++j) {
+      Y(i, j) = X(i, j) / val;
+    }
+  }
+  return Y;
+}
+
+float mean(const Tensor &X) {
   float acc = 0.0f;
-  for (auto v : X.data) acc += v;
+  for (auto v : X.data)
+    acc += v;
   return acc / (float)X.size();
 }
 
-}
+} // namespace tf
