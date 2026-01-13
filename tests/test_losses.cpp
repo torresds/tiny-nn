@@ -7,12 +7,9 @@
 using namespace tf;
 
 void test_bce_stability() {
-    // Teste com logits extremos para garantir que log-sum-exp não exploda
-    // e que logits negativos não causem NaN no log(sigmoid)
-    
     Tensor logits(2, 1);
-    logits(0, 0) = 50.0f;  // Sigmoid ~ 1.0, se target=0 -> Loss alto mas finito
-    logits(1, 0) = -50.0f; // Sigmoid ~ 0.0, se target=1 -> Loss alto mas finito
+    logits(0, 0) = 50.0f;  
+    logits(1, 0) = -50.0f; 
     
     Tensor targets(2, 1);
     targets(0, 0) = 0.0f;
@@ -21,17 +18,12 @@ void test_bce_stability() {
     Tensor d_logits;
     float loss = bce_with_logits(logits, targets, d_logits);
     
-    // std::cout << "Loss Extreme: " << loss << std::endl;
     
     ASSERT_TRUE(!std::isnan(loss));
     ASSERT_TRUE(!std::isinf(loss));
     
-    // Loss deve ser aprox 50.0 em ambos os casos.
-    // L = - (y * log(sig) + (1-y)*log(1-sig))
-    // Se x=50, y=0 -> -log(1 - 1/(1+e^-50)) approx -log(e^-50) = 50
     ASSERT_NEAR(loss, 50.0f, 1.0f);
     
-    // Gradiente não deve ser NaN
     ASSERT_TRUE(!std::isnan(d_logits(0, 0)));
     ASSERT_TRUE(!std::isnan(d_logits(1, 0)));
 }
@@ -48,4 +40,35 @@ void test_bce_normal() {
     
     // -log(0.5) = 0.6931
     ASSERT_NEAR(loss, 0.693147f, 1e-4f);
+}
+
+void test_mse_simple() {
+    Tensor preds(2, 2); 
+    // [[1, 2], [3, 4]]
+    preds(0,0)=1; preds(0,1)=2;
+    preds(1,0)=3; preds(1,1)=4;
+    
+    Tensor targets(2, 2);
+    // [[1, 1], [3, 5]]
+    targets(0,0)=1; targets(0,1)=1;
+    targets(1,0)=3; targets(1,1)=5;
+    
+    // Diffs: [[0, 1], [0, -1]]
+    // Sq:    [[0, 1], [0, 1]]
+    // Sum = 2.
+    // Mean over batch (2) = 1.0
+    
+    Tensor d_preds;
+    float loss = mse_loss(preds, targets, d_preds);
+    
+    ASSERT_NEAR(loss, 1.0f, 1e-5f);
+    
+    // Grads: 2*diff / N
+    // N=2
+    // d = diff
+    // [[0, 1], [0, -1]]
+    ASSERT_NEAR(d_preds(0,0), 0.0f, 1e-5f);
+    ASSERT_NEAR(d_preds(0,1), 1.0f, 1e-5f);
+    ASSERT_NEAR(d_preds(1,0), 0.0f, 1e-5f);
+    ASSERT_NEAR(d_preds(1,1), -1.0f, 1e-5f);
 }
