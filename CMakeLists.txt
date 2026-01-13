@@ -9,6 +9,10 @@ add_library(tiny-nn
   src/nn/activations.cpp
   src/nn/losses.cpp
   src/optim/sgd.cpp
+  src/optim/adam.cpp
+  src/data/dataloader.cpp
+  src/data/toy_datasets.cpp
+  src/nn/sequential.cpp
 )
 
 add_library(tiny-nn::tiny-nn ALIAS tiny-nn)
@@ -47,6 +51,9 @@ target_link_libraries(xor_train PRIVATE tiny-nn::tiny-nn)
 add_executable(linear_regression examples/linear_regression.cpp)
 target_link_libraries(linear_regression PRIVATE tiny-nn::tiny-nn)
 
+add_executable(classify_blobs examples/classify_blobs.cpp)
+target_link_libraries(classify_blobs PRIVATE tiny-nn::tiny-nn)
+
 # Tests
 enable_testing()
 add_executable(tiny_nn_tests 
@@ -56,6 +63,8 @@ add_executable(tiny_nn_tests
     tests/test_losses.cpp
     tests/test_memory.cpp
     tests/test_accum.cpp
+    tests/test_optim.cpp
+    tests/test_data.cpp
 )
 target_include_directories(tiny_nn_tests PRIVATE tests)
 target_link_libraries(tiny_nn_tests PRIVATE tiny-nn::tiny-nn)
