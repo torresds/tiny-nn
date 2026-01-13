@@ -27,9 +27,11 @@ Tensor Dense::backward(const Tensor& grad_out) {
   CHECK(grad_out.rows == x_cache.rows, "Dense backward mismatch: grad_out " << grad_out.shape_str() << " expected rows=" << x_cache.rows);
 
   Tensor Xt = transpose(x_cache);
-  dW = matmul(Xt, grad_out);
+  Tensor dW_cur = matmul(Xt, grad_out);
+  dW = add(dW, dW_cur); // accum
 
-  db = sum_rows(grad_out);
+  Tensor db_cur = sum_rows(grad_out);
+  db = add(db, db_cur); // accum
 
   Tensor Wt = transpose(W);
   Tensor dX = matmul(grad_out, Wt);
