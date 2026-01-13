@@ -27,7 +27,7 @@ int main() {
     bench_matmul(256);
     bench_matmul(512);
     // 1024 might take too long for now if O(N^3) is really slow
-    // bench_matmul(1024); 
+    bench_matmul(1024); 
     
     return 0;
 }
