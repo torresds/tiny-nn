@@ -30,9 +30,11 @@ if (TINY_NN_ENABLE_WARNINGS)
   endif()
 endif()
 
+# Examples
 add_executable(xor_train examples/xor_train.cpp)
 target_link_libraries(xor_train PRIVATE tiny-nn::tiny-nn)
 
+# Tests
 enable_testing()
 add_executable(tiny_nn_tests 
     tests/run_tests.cpp
@@ -46,3 +48,12 @@ target_include_directories(tiny_nn_tests PRIVATE tests)
 target_link_libraries(tiny_nn_tests PRIVATE tiny-nn::tiny-nn)
 
 add_test(NAME AllTests COMMAND tiny_nn_tests)
+
+# Benchmarks
+add_executable(bench_matmul benchmarks/bench_matmul.cpp)
+target_include_directories(bench_matmul PRIVATE benchmarks)
+target_link_libraries(bench_matmul PRIVATE tiny-nn::tiny-nn)
+
+add_executable(bench_mlp benchmarks/bench_mlp.cpp)
+target_include_directories(bench_mlp PRIVATE benchmarks)
+target_link_libraries(bench_mlp PRIVATE tiny-nn::tiny-nn)
