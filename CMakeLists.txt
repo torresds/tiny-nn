@@ -39,6 +39,8 @@ add_executable(tiny_nn_tests
     tests/test_core.cpp
     tests/test_grad.cpp
     tests/test_losses.cpp
+    tests/test_memory.cpp
+    tests/test_accum.cpp
 )
 target_include_directories(tiny_nn_tests PRIVATE tests)
 target_link_libraries(tiny_nn_tests PRIVATE tiny-nn::tiny-nn)

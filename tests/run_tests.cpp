@@ -26,6 +26,14 @@ void test_dense_grad_check();
 
 void test_bce_stability();
 void test_bce_normal();
+void test_mse_simple();
+
+// Mem tests
+void test_move_semantics();
+void test_move_assignment();
+
+// Accum tests
+void test_grad_accumulation();
 
 int main() {
     std::cout << "Running tiny-nn tests..." << std::endl;
@@ -42,6 +50,12 @@ int main() {
     
     tf::test::run_test("BCE stability", test_bce_stability);
     tf::test::run_test("BCE normal", test_bce_normal);
+    tf::test::run_test("MSE simple", test_mse_simple);
+
+    tf::test::run_test("Move semantics", test_move_semantics);
+    tf::test::run_test("Move assignment", test_move_assignment);
+    
+    tf::test::run_test("Grad accumulation", test_grad_accumulation);
 
     tf::test::print_summary();
     return (tf::test::tests_passed == tf::test::tests_run) ? 0 : 1;
