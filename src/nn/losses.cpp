@@ -39,4 +39,36 @@ float bce_with_logits(const Tensor& logits, const Tensor& targets, Tensor& d_log
   return loss_sum / n;
 }
 
+float mse_loss(const Tensor& preds, const Tensor& targets, Tensor& d_preds) {
+  CHECK(preds.rows == targets.rows && preds.cols == targets.cols, 
+        "MSE mismatch: " << preds.shape_str() << " vs " << targets.shape_str());
+
+  float loss_sum = 0.0f;
+  const float n = (float)(preds.rows * preds.cols); // divide by total elements? Usually just batch size (rows)
+
+  // Standard MSE: 1/N * sum((y_pred - y_true)^2)
+  // But for batch, usually 1/BatchSize * sum_batch(...)
+  // Let's stick to "Mean over batch" convention used in BCE.
+  // If tensor is (Batch, Features), do we sum features then mean batch?
+  // BCE above divides by logits.rows (Batch Size), assuming cols=1.
+  
+  // Im sticking to: Divide by Batch Size (rows). Sum over features.
+  // dL/dy = 2 * (y_pred - y_true) / N
+  
+  const float batch_size = (float)preds.rows;
+  
+  d_preds = Tensor(preds.rows, preds.cols);
+
+  for(size_t i=0; i<preds.size(); ++i) {
+      float diff = preds.data[i] - targets.data[i];
+      loss_sum += diff * diff;
+      
+      // Gradient: d(diff^2)/dx = 2*diff
+      // Mean reduction: * 1/N
+      d_preds.data[i] = 2.0f * diff / batch_size;
+  }
+  
+  return loss_sum / batch_size;
+}
+
 }
