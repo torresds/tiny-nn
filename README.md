@@ -1,109 +1,123 @@
 # tiny-nn
 
-`tiny-nn` is a small neural network implementation developed from scratch in C++ as a hobby project.
+<div align="center">
 
-Formally, an **artificial neural network** can be defined as a parametric function  
+![C++](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+![CMake](https://img.shields.io/badge/CMake-3.20+-green.svg)
+![License](https://img.shields.io/badge/license-MIT-orange.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+
+*A minimalist neural network implementation from scratch in C++*
+
+</div>
+
+---
+
+Formally, an **artificial neural network** can be defined as a parametric function:
 
 $$
 f_\theta : \mathbb{R}^n \rightarrow \mathbb{R}^m
 $$
 
-constructed as a composition of affine transformations and non-linear activation functions, where the parameters $(\theta\)$ are learned by minimizing a loss function through gradient-based optimization.
+constructed as a composition of affine transformations and non-linear activation functions, where the parameters $(\theta)$ are learned by minimizing a loss function through gradient-based optimization.
 
-The goal of this project is to study and implement these concepts explicitly at a low level, matrix operations, backpropagation, optimization, and numerical stability, without relying on existing machine learning frameworks or numerical libraries.
+**Goal**: Study and implement these concepts explicitly at a low level—matrix operations, backpropagation, optimization, and numerical stability, without relying on existing machine learning frameworks or numerical libraries.
 
-## Design principles
+---
 
-- Explicit tensor operations and memory layout  
-- Clear separation between mathematical core and neural network components  
-- No external ML or numerical libraries  
-- Minimal abstractions to keep learning and debugging transparent  
+## Design Principles
+
+- **Explicit tensor operations** and memory layout  
+- **Clear separation** between mathematical core and neural network components  
+- **No external ML or numerical libraries**  
+- **Minimal abstractions** to keep learning and debugging transparent  
 
 The CPU implementation is treated as a **reference baseline**, prioritizing correctness and clarity before more advanced execution models.
 
-## Implemented features
+---
 
+## Implemented Features
+
+### Core Math
 - 2D tensor with contiguous row-major memory representation
-- Core linear algebra operations:
-  - Matrix multiplication (MatMul) with cache-friendly access via transpose
-  - Transpose
-  - Elementwise operations (add, sub, mul) and scalar multiply
-  - Row-wise bias addition and row-sum reduction
-- Fully connected (Dense) layer:
-  - Forward pass: \(Y = XW + b\)
-  - Backward pass with explicit gradient accumulation
-- Activation functions:
-  - ReLU
-  - Sigmoid
-- Loss functions:
-  - Binary Cross-Entropy with logits (numerically stable formulation)
-  - Mean Squared Error (MSE) for regression
-- Stochastic Gradient Descent (SGD)
-- Extensive correctness validation:
-  - Unit tests for tensor ops and layers
-  - Numerical gradient checking (finite differences)
-  - Stability tests for extreme logits
-  - Move semantics and gradient accumulation tests
+- Matrix multiplication (MatMul) with cache-friendly access patterns
+- Transpose and elementwise operations (add, sub, mul, div)
+- Broadcasted bias addition and row-sum reductions
+
+### Neural Network Components
+- **Layers**: Fully connected (`Dense`) with explicit gradient accumulation
+- **Containers**: `Sequential` for modular model composition
+- **Activations**: `ReLU`, `Sigmoid`
+
+### Optimization & Loss Functions
+- **Optimizers**: `SGD`, `Adam` (with momentum and bias correction)
+- **Losses**: 
+  - Binary Cross-Entropy with logits
+  - Softmax Cross-Entropy with logits
+  - Mean Squared Error (MSE)
+
+### Data Engineering
+- `Dataset` and `DataLoader` abstractions for batching and shuffling
+
+### Validation & Testing
+- Unit tests for tensor operations and layers
+- Numerical gradient checking (finite differences)
+- Stability tests for extreme logits
+
+---
 
 ## Examples
 
-### XOR classification (non-linear separability)
+The provided examples serve as validation benchmarks for different components of the library.
 
-The XOR problem is a classical benchmark in neural network literature because it is **not linearly separable**. A single linear model cannot solve XOR; at least one hidden layer with a non-linear activation is required.
+### Multi-class Classification (Gaussian Blobs)
+Evaluates the orchestration of high-level abstractions: `Sequential`, `Adam`, and `DataLoader`. Validates the numerical stability of **Softmax Cross-Entropy** and the convergence efficiency of adaptive momentum methods.
 
-This makes XOR a minimal test for:
-- correct implementation of non-linear activations,
-- correct gradient propagation through hidden layers,
-- stable optimization behavior.
+```bash
+./build/classify_blobs
+```
+
+### XOR Classification (Non-Linear Separability)
+A mandatory benchmark for any neural network library. Confirms correct implementation of **backpropagation through hidden layers** and the crucial role of non-linear activation functions.
 
 ```bash
 ./build/xor_train
-````
+```
 
-The model converges to high accuracy, indicating correct forward/backward computation and optimization.
-
-### Linear regression (Dense + MSE)
-
-A linear regression example is provided to validate the simplest case of supervised learning:
-
-$$
-y = w_1 x_1 + w_2 x_2 + b
-$$
-
-
-Synthetic data is generated with known parameters and noise. Training should recover the original weights, serving as a sanity check for:
-
-* affine layers,
-* MSE loss,
-* gradient descent behavior.
+### Linear Regression
+Baseline sanity check for the most primitive supervised learning components. Verifies that **Dense layer** transformations and **MSE loss** are mathematically correct.
 
 ```bash
 ./build/linear_regression
 ```
 
+---
+
 ## Benchmarks
 
-Basic benchmarks are included to track performance and guide optimization work:
+Performance tracking via micro-benchmarks:
 
-* `bench_matmul`: micro-benchmark for raw matrix multiplication across sizes
-* `bench_mlp`: forward/backward-heavy benchmark where MatMul dominates execution time
+| Benchmark      | Description                                      |
+| -------------- | ------------------------------------------------ |
+| `bench_matmul` | Raw matrix multiplication across varying sizes   |
+| `bench_mlp`    | Forward/backward pass latency (MatMul-dominated) |
 
 ```bash
 ./build/bench_matmul
 ./build/bench_mlp
 ```
 
-These benchmarks are intended for **relative comparisons across versions**, not absolute performance claims.
+---
 
 ## Tests
 
 ```bash
-./build/tiny_nn_tests
-# or:
 ctest --test-dir build
+# or:
+./build/tiny_nn_tests
 ```
 
-The test suite emphasizes correctness and numerical stability over performance.
+---
 
 ## Build
 
@@ -112,28 +126,32 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-Notes:
+**Notes:**
+- Non-MSVC builds enable aggressive optimizations (`-O3 -march=native -ffast-math`)
+- OpenMP is used when available for MatMul parallelization
 
-* Non-MSVC builds enable aggressive optimizations (`-O3 -march=native -ffast-math`)
-* OpenMP is used when available (currently for MatMul parallelization)
+---
 
-## Scope and limitations
+## Project Roadmap
 
-This project is **not** intended to compete with established machine learning libraries.
+### Completed
+- [x] **Math**: Contiguous 2D Tensor, MatMul, Transpose
+- [x] **Modules**: `Dense` layer, `Sequential` container
+- [x] **Optimization**: `SGD` and `Adam` (with momentum)
+- [x] **Losses**: MSE, Binary Cross-Entropy, Softmax Cross-Entropy
+- [x] **Data Engineering**: `Dataset` and `DataLoader` abstractions
 
-Instead, it serves as:
+### Planned
+- [ ] **Initialization**: He and Xavier/Glorot weight initialization schemes
+- [ ] **Activations**: `Tanh` and `LeakyReLU`
+- [ ] **Performance**: CPU optimizations (tiling, cache-blocking)
+- [ ] **Linear Algebra**: Optional SIMD kernels (AVX/NEON)
+- [ ] **Hardware Acceleration**: Preliminary CUDA backend support
 
-* a learning and experimentation tool,
-* a correctness reference for low-level NN components,
-* a foundation for studying optimization strategies and execution models.
+---
 
-## Planned features / future work
+<div align="center">
 
-* Softmax + CrossEntropy
-* Sequential container for model composition
-* Additional activation functions (Tanh)
-* Mini-batch and data-loading utilities
-* More detailed benchmarking and profiling
-* Further CPU optimizations (tiling, cache blocking, packing)
-* Optional SIMD kernels
-* CUDA-accelerated backend
+**Made with ❤️ and C++**
+
+</div>
