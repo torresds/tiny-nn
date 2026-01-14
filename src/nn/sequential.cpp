@@ -1,8 +1,16 @@
 #include "nn/sequential.h"
 
+#include "io/checkpoint.h"
+
 namespace tf {
 
 void Sequential::add(Module *m) { modules_.push_back(m); }
+
+Sequential::~Sequential() {
+  for (auto *m : modules_) {
+    delete m;
+  }
+}
 
 Tensor Sequential::forward(const Tensor &x) {
   Tensor out = x;
@@ -20,13 +28,23 @@ Tensor Sequential::backward(const Tensor &grad_out) {
   return grad;
 }
 
-std::vector<Param> Sequential::params() {
-  std::vector<Param> all_params;
-  for (auto *m : modules_) {
-    auto ps = m->params();
-    all_params.insert(all_params.end(), ps.begin(), ps.end());
+std::vector<NamedParam> Sequential::named_parameters() const {
+  std::vector<NamedParam> out;
+  for (size_t i = 0; i < modules_.size(); ++i) {
+    auto local = modules_[i]->named_parameters();
+    for (auto &p : local) {
+      NamedParam np;
+      np.name = std::to_string(i) + "." + p.name;
+      np.value = p.value;
+      np.grad = p.grad;
+      out.push_back(np);
+    }
   }
-  return all_params;
+  return out;
 }
+
+void Sequential::save(const std::string &path) { save_checkpoint(*this, path); }
+
+void Sequential::load(const std::string &path) { load_checkpoint(*this, path); }
 
 }  
