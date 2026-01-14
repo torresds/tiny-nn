@@ -31,19 +31,17 @@ void test_softmax_ce_sanity();
 void test_softmax_ce_stability();
 void test_softmax_ce_grad_check();
 
-
 void test_move_semantics();
 void test_move_assignment();
 
-
 void test_grad_accumulation();
-
 
 void test_adam_simple();
 
-
 void test_make_blobs();
 void test_dataloader_batching();
+
+void test_save_load();
 
 int main() {
   std::cout << "Running tiny-nn tests..." << std::endl;
@@ -74,6 +72,8 @@ int main() {
 
   tf::test::run_test("Make blobs", test_make_blobs);
   tf::test::run_test("DataLoader batching", test_dataloader_batching);
+
+  tf::test::run_test("Save/Load checkpoint", test_save_load);
 
   tf::test::print_summary();
   return (tf::test::tests_passed == tf::test::tests_run) ? 0 : 1;
